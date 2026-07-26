@@ -1,0 +1,17 @@
+{
+  "name": "photon-imessage-n8n-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Bridge between Photon iMessage (photon.codes/platform/imessage) and n8n",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

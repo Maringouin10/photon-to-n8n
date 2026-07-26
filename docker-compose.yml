@@ -1,0 +1,13 @@
+services:
+  imessage-bridge:
+    build: .
+    container_name: photon-imessage-bridge
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      # n8n -> bridge (envoi). Local uniquement, jamais exposé sur internet.
+      - "127.0.0.1:8105:8105"
+      # Photon -> bridge (réception). Doit être joignable depuis internet en HTTPS
+      # (ouvrez le port sur votre pare-feu / box, ou mettez un reverse proxy devant).
+      - "8106:8106"
