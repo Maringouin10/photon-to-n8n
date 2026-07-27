@@ -7,6 +7,6 @@ RUN npm install --omit=dev
 
 COPY src ./src
 
-EXPOSE 8105 8106
+EXPOSE 8105
 
 CMD ["node", "src/server.js"]
