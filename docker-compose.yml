@@ -14,3 +14,4 @@ services:
 networks:
   nexus-network:
     external: true
+    name: mon-serveur_nexus-network

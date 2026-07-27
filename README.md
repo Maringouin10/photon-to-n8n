@@ -31,7 +31,7 @@ docker compose up -d --build
 
 ## Brancher le pont sur le réseau nexus-network
 
-`docker-compose.yml` déclare `nexus-network` comme réseau **externe** (`external: true`) et y attache directement le pont au démarrage — comme n8n et NPM y sont déjà, il n'y a rien d'autre à faire, pas de `docker network connect` manuel.
+`docker-compose.yml` déclare `nexus-network` comme réseau **externe** (`external: true`, mappé sur le nom réel `mon-serveur_nexus-network` créé par votre stack `mon-serveur` — vérifiable avec `docker network ls`) et y attache directement le pont au démarrage. Comme n8n et NPM y sont déjà, il n'y a rien d'autre à faire, pas de `docker network connect` manuel.
 
 Vérifiez que ça communique :
 
