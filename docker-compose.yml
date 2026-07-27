@@ -5,9 +5,14 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    ports:
-      # n8n -> bridge (envoi). Local uniquement, jamais exposé sur internet.
-      - "127.0.0.1:8105:8105"
-      # Photon -> bridge (réception). Doit être joignable depuis internet en HTTPS
-      # (ouvrez le port sur votre pare-feu / box, ou mettez un reverse proxy devant).
-      - "8106:8106"
+    networks:
+      - photon_bridge_net
+    # Pas de "ports:" ici volontairement : ni 8105 ni 8106 ne sont publiés sur
+    # l'hôte/LAN. n8n et Nginx Proxy Manager doivent rejoindre ce même réseau
+    # Docker et appeler le conteneur par son nom (voir README) :
+    #   docker network connect photon_bridge_net <conteneur_n8n>
+    #   docker network connect photon_bridge_net <conteneur_npm>
+
+networks:
+  photon_bridge_net:
+    name: photon_bridge_net
