@@ -60,7 +60,7 @@ app.post('/webhook/photon', async (req, res) => {
       console.error(`n8n webhook responded ${r.status}`);
     }
   } catch (err) {
-    console.error('Failed to forward message to n8n:', err.message);
+    console.error('Failed to forward message to n8n:', err.message, err.cause ?? '');
   }
 });
 
@@ -91,8 +91,8 @@ app.post('/send', async (req, res) => {
     }
     res.json({ ok: true, photon: data });
   } catch (err) {
-    console.error('Failed to call Photon:', err.message);
-    res.status(502).json({ error: 'photon request failed' });
+    console.error('Failed to call Photon:', err.message, err.cause ?? '');
+    res.status(502).json({ error: 'photon request failed', details: String(err.cause ?? err.message) });
   }
 });
 
