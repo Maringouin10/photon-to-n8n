@@ -9,7 +9,7 @@ Le conteneur expose **deux routes sur deux ports différents** (même process Ex
 | Photon → pont | `WEBHOOK_PORT` (8106) | `POST /webhook/photon` | Photon appelle le pont quand un iMessage arrive → le pont relaie vers `N8N_WEBHOOK_URL` |
 | n8n → pont | `SEND_PORT` (8105) | `POST /send` | n8n appelle le pont pour envoyer un iMessage sortant → le pont appelle l'API Photon |
 
-**Aucun des deux ports n'est publié sur l'hôte.** n8n et Nginx Proxy Manager (NPM) tournant chacun dans leur propre conteneur sur le même serveur, le pont rejoint un réseau Docker partagé (`photon_bridge_net`) et est appelé par les autres conteneurs via son **nom de conteneur**, pas via une IP ou un port exposé sur l'hôte/LAN. C'est ce qui manquait la première fois (`ECONNREFUSED 192.168.2.32:8105` = rien n'écoutait sur l'IP LAN, seulement sur `127.0.0.1` de l'hôte).
+**Aucun des deux ports n'est publié sur l'hôte.** n8n et Nginx Proxy Manager (NPM) tournant chacun dans leur propre conteneur sur le même serveur, le pont rejoint le réseau Docker déjà partagé par les deux (`nexus-network`) et est appelé par les autres conteneurs via son **nom de conteneur**, pas via une IP ou un port exposé sur l'hôte/LAN. C'est ce qui manquait la première fois (`ECONNREFUSED 192.168.2.32:8105` = rien n'écoutait sur l'IP LAN, seulement sur `127.0.0.1` de l'hôte).
 
 ## ⚠️ À vérifier avant de démarrer
 
@@ -29,26 +29,17 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-## Brancher le pont sur le même réseau que n8n et NPM
+## Brancher le pont sur le réseau nexus-network
 
-Le `docker-compose.yml` crée le réseau `photon_bridge_net` et y met le pont. Il faut maintenant y ajouter les conteneurs n8n et NPM :
-
-```bash
-# trouver les noms exacts de vos conteneurs
-docker ps --format '{{.Names}}'
-
-# les connecter au réseau du pont (remplacez par les vrais noms)
-docker network connect photon_bridge_net <conteneur_n8n>
-docker network connect photon_bridge_net <conteneur_npm>
-```
-
-C'est persistant (pas besoin de refaire la commande à chaque redémarrage), tant que les conteneurs ne sont pas recréés (`docker compose down` + `up` sur leurs propres stacks redemande la connexion — si ça vous arrive souvent, ajoutez plutôt `photon_bridge_net` comme réseau externe dans le `docker-compose.yml` de n8n et de NPM directement).
+`docker-compose.yml` déclare `nexus-network` comme réseau **externe** (`external: true`) et y attache directement le pont au démarrage — comme n8n et NPM y sont déjà, il n'y a rien d'autre à faire, pas de `docker network connect` manuel.
 
 Vérifiez que ça communique :
 
 ```bash
 docker exec <conteneur_n8n> wget -qO- http://photon-imessage-bridge:8105/health
 ```
+
+(si `wget` n'est pas installé dans l'image n8n, utilisez `curl` à la place, ou testez directement depuis le node HTTP Request dans n8n)
 
 ## Configuration côté Photon
 
@@ -92,7 +83,7 @@ Le body reçu est le payload brut renvoyé par Photon (tel que relayé par `/web
 
 - Node : `HTTP Request`
 - Method : `POST`
-- URL : `http://photon-imessage-bridge:8105/send` (nom du conteneur, pas une IP — fonctionne car n8n et le pont sont sur `photon_bridge_net`)
+- URL : `http://photon-imessage-bridge:8105/send` (nom du conteneur, pas une IP — fonctionne car n8n et le pont sont sur `nexus-network`)
 - Body Content Type : `JSON`
 - Body :
   ```json
@@ -108,7 +99,7 @@ Astuce : mettez l'URL de base (`http://photon-imessage-bridge:8105`) dans une va
 ## Test rapide
 
 ```bash
-# depuis le serveur (n'importe quel conteneur du réseau photon_bridge_net)
+# depuis le serveur (n'importe quel conteneur du réseau nexus-network)
 docker exec photon-imessage-bridge wget -qO- http://localhost:8105/health
 
 docker exec <conteneur_n8n> wget -qO- --post-data='{"to":"+15551234567","text":"test depuis le pont"}' \

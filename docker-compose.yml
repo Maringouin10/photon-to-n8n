@@ -6,13 +6,11 @@ services:
     env_file:
       - .env
     networks:
-      - photon_bridge_net
+      - nexus-network
     # Pas de "ports:" ici volontairement : ni 8105 ni 8106 ne sont publiés sur
-    # l'hôte/LAN. n8n et Nginx Proxy Manager doivent rejoindre ce même réseau
-    # Docker et appeler le conteneur par son nom (voir README) :
-    #   docker network connect photon_bridge_net <conteneur_n8n>
-    #   docker network connect photon_bridge_net <conteneur_npm>
+    # l'hôte/LAN. n8n et Nginx Proxy Manager sont déjà sur nexus-network et
+    # peuvent appeler ce conteneur par son nom (voir README).
 
 networks:
-  photon_bridge_net:
-    name: photon_bridge_net
+  nexus-network:
+    external: true
